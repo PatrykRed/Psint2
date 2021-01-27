@@ -1,43 +1,50 @@
 from django.db import models
 
-class Uzytkownik(models.Model):
-    id_Uzytkownik = models.IntegerField(null=False)
-    Imie = models.CharField(max_length=45)
-    Nazwisko = models.CharField(max_length=45)
+class User(models.Model):
+    Name = models.CharField(max_length=45)
+    Surname = models.CharField(max_length=45)
     Login = models.CharField(max_length=45)
-    Haslo = models.CharField(max_length=45)
+    Password = models.CharField(max_length=45)
     Mail = models.CharField(max_length=45)
 
-class Zwierze(models.Model):
-    id_Zwierze = models.IntegerField(null=False)
-    Imie = models.CharField(max_length=45)
-    Rasa = models.CharField(max_length=45)
-    Uzytkownik_id_Uzytkownik = models.ForeignKey(Uzytkownik, on_delete=models.CASCADE, null=False)
+    def __str__(self):
+        return self.Name + ' ' + self.Surname
 
-class Operacje(models.Model):
-    id_Operacje = models.IntegerField()
-    Nazwa = models.CharField(max_length=45)
-    Data = models.DateField(null=False)
-    Zwierze_id_Zwierze = models.ForeignKey(Zwierze,on_delete=models.CASCADE,null=False)
+class Pet(models.Model):
+    Name = models.CharField(max_length=45)
+    Breed = models.CharField(max_length=45)
+    Pet_User = models.ForeignKey(User, on_delete=models.CASCADE, null=False,related_name='Pets')
 
-class Lekarz(models.Model):
-    id_Lekarz = models.IntegerField()
-    Imie = models.CharField(max_length=45)
-    Nazwisko = models.CharField(max_length=45)
-    Specjalizacja = models.CharField(max_length=45)
-    Operacje_id_Operacje = models.ForeignKey(Operacje,on_delete=models.CASCADE,null=False)
+    def __str__(self):
+        return self.Name + ' ' + self.Breed
 
-class Wizyty(models.Model):
-    id_Wizyty = models.IntegerField(null=False)
-    Data = models.DateField(null=False)
-    Zwierze_id_Zwierze = models.ForeignKey(Zwierze,on_delete=models.CASCADE,null=False)
-    Lekarz_id_Lekarz = models.ForeignKey(Lekarz,on_delete=models.CASCADE, null= False)
+class Operation(models.Model):
+    Name = models.CharField(max_length=45)
+    Date = models.DateField(null=False)
+    Operation_Pet = models.ForeignKey(Pet, on_delete=models.CASCADE, null=False,related_name='Operations')
 
-class Recepty(models.Model):
-    id_Recepty = models.IntegerField(null=False)
-    Nazwa_Recepty = models.CharField(max_length=45)
-    Opis = models.CharField(max_length=45)
-    Lekarz_id_Lekarz = models.ForeignKey(Lekarz, on_delete=models.CASCADE,null=False)
+    def __str__(self):
+        return self.Name
+
+
+class Doctor(models.Model):
+    Name = models.CharField(max_length=45)
+    Surname = models.CharField(max_length=45)
+    Specialization = models.CharField(max_length=45)
+    Doctor_Operation = models.ForeignKey(Operation, on_delete=models.CASCADE,null=False,related_name='Doctors')
+
+    def __str__(self):
+        return self.Name + ' ' + self.Surname + ' ' + self.Specialization
+
+class Visits(models.Model):
+    Date = models.DateField(null=False)
+    Pet_Visits = models.ForeignKey(Pet, on_delete=models.CASCADE, null=False, related_name='Visited')
+    Doctor_Visits = models.ForeignKey(Doctor, on_delete=models.CASCADE, null=False, related_name='Visit')
+
+class Reception(models.Model):
+    Name_Reception = models.CharField(max_length=45)
+    Descriptions = models.CharField(max_length=45)
+    Doctor_Reception = models.ForeignKey(Doctor, on_delete=models.CASCADE, null=False, related_name='Receptions')
 
 
 

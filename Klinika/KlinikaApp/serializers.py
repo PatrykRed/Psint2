@@ -1,108 +1,56 @@
 from rest_framework import serializers
-from .models import Uzytkownik, Zwierze, Lekarz, Operacje, Wizyty, Recepty
+from .models import *
+from .views import *
 
-class UzytkownikSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Uzytkownik
-        fields = ['id_Uzytkownik', 'Imie', 'Nazwisko', 'Login', 'Haslo', 'Mail']
-
-    def Create(self, Validate_data):
-        return UzytkownikSerializer(**Validate_data)
-
-    def Update(self, instance, validate_data):
-        instance.id_Uzytkownik = validate_data.get('id_Uzytkownik', instance.id_Uzytkownik)
-        instance.Imie = validate_data.get('Imie', instance.imie)
-        instance.Nazwiwsko = validate_data.get('Nazwisko', instance.nazwisko)
-        instance.Login = validate_data.get('Login', instance.login)
-        instance.Haslo = validate_data.get('Haslo', instance.Haslo)
-        instance.Mail = validate_data.get('Mail', instance.Mail)
-        instance.save()
-
-        return instance
-
-class ZwierzeSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    Pets = serializers.HyperlinkedIdentityField(many=True, read_only=True, view_name='pet-detail')
 
     class Meta:
-        model = Zwierze
-        fields = ['id_Zwierze', 'Imie', 'Rasa', 'Uzytkownik_id_Uzytkownik']
+        model = User
+        fields = ['Name', 'Surname', 'Login', 'Password', 'Pets']
 
-    def Create(self, Validate_data):
-        return UzytkownikSerializer(**Validate_data)
 
-    def Update(self, instance, validate_data):
-        instance.id_Zwierze = validate_data.get('id_Zwierze', instance.id_Zwierze)
-        instance.Imie = validate_data.get('Imie', instance.imie)
-        instance.Rasa = validate_data.get('Rasa', instance.Rasa)
-        instance.Uzytkownik_id_Uzytkownik = validate_data.get('Uzytkownik_id_Uzytkownik', instance.Uzytkownik_id_Uzytkownik)
-        instance.save()
+class PetSerializer(serializers.HyperlinkedModelSerializer):
+    Pet_User = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='Surname')
+    Operations = serializers.HyperlinkedIdentityField(many=True, read_only=True, view_name='operation-detail')
+    Visited = serializers.HyperlinkedIdentityField(many=True, read_only=True, view_name='visits-detail')
 
-        return instance
+    class Meta:
+        model = Pet
+        fields = ['Name', 'Breed', 'Pet_User', 'Operations', 'Visited']
 
-class OperacjeSerializer(serializers.ModelSerializer):
+class OperationSerializer(serializers.HyperlinkedModelSerializer):
+    Operation_Pet = serializers.SlugRelatedField(queryset=Pet.objects.all(), slug_field='Name')
+    Doctors = serializers.HyperlinkedIdentityField(many=True, read_only=True, view_name='doctor-detail')
 
-    model = Operacje
-    fields = ['id_Operacje', 'Nazwa', 'Data', 'Zwierze_id_Zwierze']
+    class Meta:
+        model = Operation
+        fields = ['Name', 'Date', 'Operation_Pet', 'Doctors']
 
-    def Create(self, Validate_data):
-        return UzytkownikSerializer(**Validate_data)
 
-    def Update(self, instance, validate_data):
-        instance.id_Operacje = validate_data.get('id_Operacje', instance.id_Operacje)
-        instance.Nazwa = validate_data.get('Nazwa', instance.Nazwa)
-        instance.Data = validate_data.get('Data', instance.Data)
-        instance.Zwierze_id_Zwierze = validate_data.get('Zwierze_id_Zwierze', instance.Zwierze_id_Zwierze)
-        instance.save()
+class DoctorSerializer(serializers.HyperlinkedModelSerializer):
+    Doctor_Operation = serializers.SlugRelatedField(queryset=Operation.objects.all(), slug_field='Name')
+    Visit = serializers.HyperlinkedIdentityField(many=True, read_only=True, view_name='visits-detail')
+    Receptions = serializers.HyperlinkedIdentityField(many=True, read_only=True, view_name='reception-detail')
 
-        return instance
+    class Meta:
+        model = Doctor
+        fields = ['Name', 'Surname', 'Specialization', 'Doctor_Operation', 'Visit','Receptions']
 
-class LekarzSerializer(serializers.ModelSerializer):
 
-    model = Lekarz
-    fields =['id_Wizyty', 'Data', 'Zwierze_id_Zwierze', 'Lekarz_id_Lekarz', 'Operacje_id_Operacje']
+class VisitsSerializers(serializers.ModelSerializer):
+    Pet_Visits = serializers.SlugRelatedField(queryset=Pet.objects.all(), slug_field='Name')
+    Doctor_Visits = serializers.SlugRelatedField(queryset=Doctor.objects.all(), slug_field='Surname')
 
-    def Create(self, Validate_data):
-        return UzytkownikSerializer(**Validate_data)
+    class Meta:
+        model = Visits
+        fields = ['Date', 'Pet_Visits', 'Doctor_Visits']
 
-    def Update(self, instance, validate_data):
-        instance.id_Wizyty = validate_data.get('id_Wizyty', instance.id_Wizyty)
-        instance.Data = validate_data.get('Data', instance.Data)
-        instance.Zwierze_id_Zwierze = validate_data.get('Zwierze_id_Zwierze', instance.Zwierze_id_Zwierze)
-        instance.Lekarz_id_Lekarz = validate_data.get('Lekarz_id_Lekarz', instance.Lekarz_id_Lekarz)
-        instance.Operacje_id_Operacje = validate_data.get('Operacje_id_Operacje', instance.Operacje_id_Operacje)
-        instance.save()
+class ReceptionSerializers(serializers.ModelSerializer):
+    Doctor_Reception = serializers.SlugRelatedField(queryset=Doctor.objects.all(), slug_field='Surname')
 
-        return instance
 
-class WizytySerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Reception
+        fields = ['Name_Reception', 'Descriptions', 'Doctor_Reception']
 
-    model = Wizyty
-    fields = ['id_Wizyty','Data', 'Zwierze_id_Zwierze',' Lekarz_id_Lekarz' ]
-
-    def Create(self, Validate_data):
-        return UzytkownikSerializer(**Validate_data)
-
-    def Update(self, instance, validate_data):
-        instance.id_Wizyty = validate_data.get('id_Wizyty', instance.id_Wizyty)
-        instance.Data = validate_data.get('Data', instance.Data)
-        instance.Zwierze_id_Zwierze = validate_data.get('Zwierze_id_Zwierze', instance.Zwierze_id_Zwierze)
-        instance.Lekarz_id_Lekarz = validate_data.get('Lekarz_id_Lekarz', instance.Lekarz_id_Lekarz)
-        instance.save()
-
-        return instance
-
-class ReceptySerializers(serializers.ModelSerializer):
-    model = Recepty
-    fields =['id_Recepty', 'Nazwa_Recepty', 'Opis', 'Lekarz_id_Lekarz']
-
-    def Create(self, Validate_data):
-        return UzytkownikSerializer(**Validate_data)
-
-    def Update(self, instance, validate_data):
-        instance.id_Recepty = validate_data.get('id_Recepty', instance.id_Recepty)
-        instance.Nazwa_Recepty = validate_data.get('Nazwa_Recepty', instance.Nazwa_Recepty)
-        instance.Opis = validate_data.get('Opis', instance.Opis)
-        instance.Lekarz_id_Lekarz = validate_data.get('Lekarz_id_Lekarz', instance.Lekarz_id_Lekarz)
-        instance.save()
-
-        return instance
